@@ -1,0 +1,14 @@
+# Environments
+venv/
+.env
+
+# Data files (keep raw/processed data out of version control)
+/Data
+
+# Jupyter 
+.ipynb_checkpoints
+.DS_Store
+__pycache__/
+*.pyc
+
+
