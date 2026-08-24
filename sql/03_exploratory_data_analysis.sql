@@ -49,5 +49,27 @@ GROUP BY product_category
 ORDER BY gross_item_revenue DESC
 LIMIT 10;
 
+-- ------------------------------------------------------------
+-- 4. Impact of Delivery Speed and Delays on Review Sentiment
+-- ------------------------------------------------------------
+
+
+SELECT
+	r.review_score,
+	r.review_sentiment,
+	COUNT(DISTINCT o.order_id) AS total_orders,
+	ROUND(AVG(o.actual_delivery_days), 1) AS avg_delivery_days,
+	ROUND(AVG(o.days_ahead_of_estimate), 1) AS avg_days_vs_estimate,
+	-- Percentage of orders delivered AFTER the estimated date
+	ROUND(100.0 * COUNT(CASE WHEN o.days_ahead_of_estimate < 0 THEN 1 END) / COUNT(o.order_id), 2) AS late_delivery_rate_pct
+	
+FROM v_clean_orders AS o
+INNER JOIN v_clean_customer_reviews AS r
+	ON o.order_id = r.order_id
+GROUP BY r.review_score, r.review_sentiment
+ORDER BY r.review_score
+;
+
+
 
 	
