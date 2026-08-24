@@ -29,4 +29,25 @@ SELECT
 FROM fct_order_items
 GROUP BY to_char(purchase_timestamp, 'YYYY-MM')
 ORDER BY year_month ASC;
+
+-- --------------------------------------------------
+-- 3. Top 10 Revenue-Generating Product Categories
+-- --------------------------------------------------
+
+SELECT
+	 product_category,
+	 COUNT(order_item_id) AS total_items_sold,
+	 COUNT(DISTINCT order_id) AS total_orders,
+	 ROUND(SUM(item_price), 2) AS gross_item_revenue,
+	 ROUND(SUM(total_item_price), 2) AS total_revenue_incl_freight,
+	 ROUND(AVG(item_price), 2) AS avg_item_price
+	 
+FROM fct_order_items
+WHERE product_category IS NOT NULL
+	AND product_category != 'unassigned'
+GROUP BY product_category
+ORDER BY gross_item_revenue DESC
+LIMIT 10;
+
+
 	
