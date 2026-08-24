@@ -53,7 +53,7 @@ LIMIT 10;
 -- 4. Impact of Delivery Speed and Delays on Review Sentiment
 -- ------------------------------------------------------------
 
-
+-- 4A. Review Score vs. Delivery Speed
 SELECT
 	r.review_score,
 	r.review_sentiment,
@@ -69,6 +69,22 @@ INNER JOIN v_clean_customer_reviews AS r
 GROUP BY r.review_score, r.review_sentiment
 ORDER BY r.review_score
 ;
+
+-- 4B. Review Score Breakdown: On-Time vs. Late Deliveries
+SELECT 
+    CASE 
+        WHEN o.days_ahead_of_estimate < 0 THEN 'Late Delivery'
+        WHEN o.days_ahead_of_estimate = 0 THEN 'On Time'
+        ELSE 'Early Delivery'
+    END AS delivery_performance,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    ROUND(AVG(r.review_score), 2) AS avg_review_score,
+    ROUND(100.0 * COUNT(CASE WHEN r.review_score <= 2 THEN 1 END) / COUNT(o.order_id), 2) AS detractor_rate_pct
+FROM v_clean_orders AS o
+INNER JOIN v_clean_customer_reviews AS r
+    ON o.order_id = r.order_id
+GROUP BY 1
+ORDER BY avg_review_score DESC;
 
 
 
