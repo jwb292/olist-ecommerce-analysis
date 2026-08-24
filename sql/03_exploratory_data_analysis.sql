@@ -86,6 +86,26 @@ INNER JOIN v_clean_customer_reviews AS r
 GROUP BY 1
 ORDER BY avg_review_score DESC;
 
+-- -------------------------------------------------------------------
+-- 5. Regional Supply vs. Demand (Seller Density vs Customer Revenue)
+-- -------------------------------------------------------------------
+
+-- 5A. Customer Demand & Revenue by Customer State (Top 10 States)
+SELECT
+	c.customer_state,
+	COUNT(DISTINCT o.order_id) AS total_orders,
+	COUNT(oi.order_item_id) AS total_items_bought,
+	ROUND(SUM(oi.total_item_price), 2) AS total_customer_spend,
+	ROUND(AVG(o.actual_delivery_days), 1) AS avg_delivery_days
+FROM v_clean_order_items AS oi
+INNER JOIN v_clean_orders AS o 
+	ON oi.order_id = o.order_id 
+LEFT JOIN v_clean_customers AS c
+	ON o.customer_id = c.customer_id 
+GROUP BY c.customer_state 
+ORDER BY total_customer_spend DESC 
+LIMIT 10; 
+
 
 
 	
