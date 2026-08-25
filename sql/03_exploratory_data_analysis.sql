@@ -106,6 +106,11 @@ GROUP BY c.customer_state
 ORDER BY total_customer_spend DESC 
 LIMIT 10; 
 
+-- 5B. Seller Concentration & Revenue by Macro-Region
+SELECT
+FROM 
+
+
 
 
 	
