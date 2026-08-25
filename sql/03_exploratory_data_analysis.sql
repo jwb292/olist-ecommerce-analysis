@@ -108,7 +108,53 @@ LIMIT 10;
 
 -- 5B. Seller Concentration & Revenue by Macro-Region
 SELECT
-FROM 
+	seller_region,
+	COUNT(DISTINCT seller_id) AS active_sellers,
+	COUNT(DISTINCT order_id) AS orders_fulfilled,
+	COUNT(order_item_id) AS items_sold,
+	ROUND(SUM(total_item_price)) AS total_seller_revenue,
+	ROUND(100.0 * SUM(total_item_price) / SUM(SUM(total_item_price)) OVER(),2) AS pct_total_revenue
+FROM fct_order_items
+WHERE seller_region IS NOT NULL
+	AND seller_region != 'unknown'
+GROUP BY seller_region
+ORDER BY total_seller_revenue desc;
+
+-- -----------------------------------------------------------------------------
+-- 6. Purchasing Behaviors (Installment Tiers, Freight Ratios & Repeat Buyers)
+-- -----------------------------------------------------------------------------
+
+-- 6A. Installment Usage vs. Average Order Value (AOV)
+SELECT 
+    p.installment_type,
+    COUNT(DISTINCT p.order_id) AS total_orders,
+    ROUND(SUM(p.payment_value::numeric), 2) AS total_payment_volume,
+    ROUND(AVG(p.payment_value::numeric), 2) AS avg_order_value
+FROM v_clean_payments AS p
+INNER JOIN v_clean_orders AS o ON p.order_id = o.order_id
+GROUP BY p.installment_type
+ORDER BY avg_order_value DESC;
+
+-- 6B. Customer Retention: Single-Purchase vs. Repeat Buyers
+WITH customer_orders AS (
+    SELECT 
+        c.customer_unique_id,
+        COUNT(DISTINCT o.order_id) AS lifetime_orders,
+        SUM(oi.total_item_price) AS lifetime_spend,
+        AVG(oi.freight_to_price_ratio) AS avg_freight_ratio
+    FROM v_clean_customers AS c
+    INNER JOIN v_clean_orders AS o ON c.customer_id = o.customer_id
+    INNER JOIN v_clean_order_items AS oi ON o.order_id = oi.order_id
+    GROUP BY c.customer_unique_id
+)
+SELECT 
+    CASE WHEN lifetime_orders > 1 THEN 'Repeat Customer' ELSE 'One-Time Customer' END AS customer_segment,
+    COUNT(customer_unique_id) AS total_customers,
+    ROUND(AVG(lifetime_spend), 2) AS avg_lifetime_spend,
+    ROUND(AVG(avg_freight_ratio), 4) AS avg_freight_ratio
+FROM customer_orders
+GROUP BY customer_segment;
+
 
 
 
